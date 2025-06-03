@@ -1,0 +1,3 @@
+[all]
+client01 ansible_host=81.94.156.158 ansible_user=ubuntu ansible_ssh_private_keyfile=/home/aristq/.ssh/id_rsa
+client03 ansible_host=91.237.249.38 ansible_user=root ansible_ssh_pass=pW:O+r56dICu\]H&

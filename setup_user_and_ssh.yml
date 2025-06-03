@@ -1,0 +1,46 @@
+---
+- name: Configure users and SSH keys
+  hosts: client03
+  become: yes
+  vars:
+    users:
+      - name: valgger
+        keys_url: https://github.com/valgger.keys
+      - name: georgepsh
+        keys_url: https://github.com/georgepsh.keys
+      # Добавь сюда другие пользователи по аналогии
+
+  tasks:
+    - name: Create users and their home directories
+      user:
+        name: "{{ item.name }}"
+        state: present
+        create_home: yes
+        shell: /bin/bash
+      loop: "{{ users }}"
+
+    - name: Add users to sudo group
+      user:
+        name: "{{ item.name }}"
+        groups: sudo
+        append: yes
+      loop: "{{ users }}"
+
+    - name: Ensure .ssh directory exists for each user
+      file:
+        path: "/home/{{ item.name }}/.ssh"
+        state: directory
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0700'
+      loop: "{{ users }}"
+
+    - name: Fetch SSH keys and set authorized_keys
+      get_url:
+        url: "{{ item.keys_url }}"
+        dest: "/home/{{ item.name }}/.ssh/authorized_keys"
+        mode: '0600'
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+      loop: "{{ users }}"
+

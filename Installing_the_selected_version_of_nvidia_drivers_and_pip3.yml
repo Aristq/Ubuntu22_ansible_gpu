@@ -1,0 +1,60 @@
+---
+- name: Install NVIDIA driver
+  hosts: client01
+  become: yes
+  become_method: sudo
+  vars:
+    driver_version: "560.28.03"  # Укажите здесь версию драйвера, которую хотите установить
+
+  tasks:
+    - name: Fix interrupted dpkg
+      command: dpkg --configure -a
+      ignore_errors: yes
+
+    - name: Install prerequisites
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Ensure pip is installed
+      pip:
+        name: pip
+        executable: pip3
+
+    - name: Check pip version
+      command: pip3 --version
+      register: pip_version
+
+    - name: Display pip version
+      debug:
+        msg: "Pip version: {{ pip_version.stdout }}"
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - build-essential
+        - dkms
+        - linux-headers-{{ ansible_kernel }}
+
+    - name: Download NVIDIA driver
+      get_url:
+        url: "https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ driver_version }}/NVIDIA-Linux-x86_64-{{ driver_version }}.run"
+        dest: "/tmp/NVIDIA-Linux-x86_64-{{ driver_version }}.run"
+        mode: '0755'
+
+    - name: Run NVIDIA driver installer
+      command: "sh /tmp/NVIDIA-Linux-x86_64-{{ driver_version }}.run -s"
+      args:
+        creates: "/usr/bin/nvidia-smi"
+
+    - name: Reboot the server to load the new driver
+      reboot:
+        msg: "Rebooting to load the new NVIDIA driver"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 5
+        post_reboot_delay: 30
+
