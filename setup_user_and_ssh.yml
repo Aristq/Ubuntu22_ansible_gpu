@@ -4,10 +4,8 @@
   become: yes
   vars:
     users:
-      - name: valgger
-        keys_url: https://github.com/valgger.keys
-      - name: georgepsh
-        keys_url: https://github.com/georgepsh.keys
+      - name:
+        keys_url: 
       # Добавь сюда другие пользователи по аналогии
 
   tasks:
